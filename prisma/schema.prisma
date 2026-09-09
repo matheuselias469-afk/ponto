@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id            String         @id @default(uuid())
+  name          String
+  number        String         @unique // "Cod" na contabilidade
+  pin           String         // 4 digitos
+  active        Boolean        @default(true)
+  role          String
+  admissionDate DateTime
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  schedules     WorkSchedule[]
+  punches       Punch[]
+  dayEvents     DayEvent[]
+}
+
+model WorkSchedule {
+  id         String   @id @default(uuid())
+  employeeId String
+  dayOfWeek  Int      // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  ent1       String?  // Formato "HH:mm"
+  sai1       String?  // Formato "HH:mm"
+  ent2       String?  // Formato "HH:mm"
+  sai2       String?  // Formato "HH:mm"
+  
+  employee   Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, dayOfWeek])
+}
+
+enum EventType {
+  NORMAL
+  FERIADO
+  FALTA
+  FALTA_MANHA
+  FALTA_TARDE
+  ATESTADO
+  ATESTADO_MANHA
+  ATESTADO_TARDE
+  FERIAS
+  FOLGA
+}
+
+model DayEvent {
+  id         String   @id @default(uuid())
+  employeeId String
+  date       DateTime @db.Date // Salvar como data sem tempo
+  eventType  EventType @default(NORMAL)
+
+  employee   Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, date])
+}
+
+enum PunchType {
+  ENTRADA
+  SAIDA_ALMOCO
+  VOLTA_ALMOCO
+  SAIDA
+  SAIDA_ANTECIPADA
+  EXTRA
+}
+
+model Punch {
+  id                      String   @id @default(uuid())
+  employeeId              String
+  timestamp               DateTime
+  type                    PunchType
+  photoUrl                String
+  justification           String?
+  latitude                Float?
+  longitude               Float?
+  distanceFromStoreMeters Float?
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+}
+
+model Holiday {
+  id                  String   @id @default(uuid())
+  date                DateTime @unique @db.Date
+  label               String
+  workedByEmployeeIds Json     @default("{}") // Mapa employeeId -> boolean
+}
+
+model Settings {
+  id          String @id @default("singleton")
+  adminPin    String @default("1234")
+  latitude    Float  @default(0.0)
+  longitude   Float  @default(0.0)
+  radiusMeters Int   @default(100)
+}

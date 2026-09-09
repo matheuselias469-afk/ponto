@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ponto por Foto
 
-## Getting Started
+Sistema de controle de ponto com verificação de localização e foto, focado em pequenas lojas.
 
-First, run the development server:
+## Funcionalidades
+- Bater ponto com foto (usando câmera do celular).
+- Verificação de geolocalização (raio da loja).
+- Painel Administrativo.
+- Geração de planilha Excel (SheetJS).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Como Configurar
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. **Banco de Dados (PostgreSQL)**
+   - Recomendamos criar um banco de dados no **Neon** ou usar o **Vercel Postgres**.
+   - Pegue a URL de conexão e adicione ao `.env`:
+     ```env
+     DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
+     ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2. **Armazenamento de Fotos (Vercel Blob)**
+   - No painel da Vercel, crie um novo Blob Storage.
+   - Siga as instruções e adicione os tokens no `.env`:
+     ```env
+     BLOB_READ_WRITE_TOKEN="seu_token_aqui"
+     ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. **Rodar as Migrations**
+   - Com o banco conectado, rode:
+     ```bash
+     npx prisma migrate dev --name init
+     ```
 
-## Learn More
+4. **Rodar Localmente**
+   ```bash
+   npm run dev
+   ```
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploy na Vercel
+1. Conecte o repositório GitHub na Vercel.
+2. Adicione as variáveis de ambiente `DATABASE_URL` e `BLOB_READ_WRITE_TOKEN`.
+3. O build (`npm run build`) será feito automaticamente.
