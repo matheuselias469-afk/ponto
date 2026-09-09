@@ -54,13 +54,14 @@ function PontoContent() {
     if (pin.length === 4) setStep(2);
   };
 
+  const [successPunch, setSuccessPunch] = useState<any>(null);
+
   const handleBaterPonto = async () => {
     if (!location) {
       alert("Aguardando GPS...");
       return;
     }
     
-    // Tirar a foto
     let blobPhoto: Blob | null = null;
     if (videoRef.current && canvasRef.current) {
       const context = canvasRef.current.getContext('2d');
@@ -93,8 +94,7 @@ function PontoContent() {
       const data = await res.json();
       
       if (res.ok) {
-        alert("Ponto registrado com sucesso: " + data.punch.type);
-        router.push('/');
+        setSuccessPunch(data.punch);
       } else {
         alert("Erro: " + data.error);
       }
@@ -102,6 +102,34 @@ function PontoContent() {
       alert("Erro de conexão ao salvar ponto.");
     }
   };
+
+  if (successPunch) {
+    return (
+      <main className="min-h-screen bg-green-600 flex flex-col items-center justify-center p-6 text-white text-center">
+        <div className="w-24 h-24 bg-white text-green-600 rounded-full flex items-center justify-center text-5xl mb-6 shadow-xl">
+          ✓
+        </div>
+        <h1 className="text-3xl font-extrabold mb-2">Ponto Concluído!</h1>
+        <p className="text-green-100 text-lg mb-8">
+          Registro de <strong className="uppercase bg-green-800 px-2 py-1 rounded">{successPunch.type.replace('_', ' ')}</strong> salvo com sucesso.
+        </p>
+        
+        <div className="bg-green-700 p-6 rounded-2xl w-full max-w-sm mb-12 shadow-inner">
+          <p className="text-sm text-green-200 uppercase tracking-widest mb-1">Horário Registrado</p>
+          <p className="text-4xl font-bold font-mono">
+            {new Date(successPunch.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute:'2-digit' })}
+          </p>
+        </div>
+
+        <button 
+          onClick={() => router.push('/')}
+          className="w-full max-w-sm bg-white text-green-700 font-extrabold text-xl py-4 rounded-xl shadow-lg active:scale-95 transition-transform"
+        >
+          FECHAR
+        </button>
+      </main>
+    );
+  }
 
   if (step === 1) {
     return (
