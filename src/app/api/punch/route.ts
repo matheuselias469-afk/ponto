@@ -63,11 +63,13 @@ export async function POST(request: Request) {
 
     // 4. Upload da foto
     let photoUrl = '';
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      // O @vercel/blob já puxa automaticamente o BLOB_READ_WRITE_TOKEN do ambiente
       const blob = await put(photo.name, photo, { access: 'public' });
       photoUrl = blob.url;
-    } else {
-      photoUrl = 'mock-url-porque-sem-token.jpg'; // fallback para teste local
+    } catch (blobError) {
+      console.error('Erro ao fazer upload para o Vercel Blob:', blobError);
+      photoUrl = 'mock-url-porque-sem-token.jpg'; // fallback em caso de erro
     }
 
     // 5. Salvar Ponto
