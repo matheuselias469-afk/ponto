@@ -24,7 +24,11 @@ function PontoContent() {
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'user' } // Câmera frontal
+        video: { 
+          facingMode: 'user',
+          width: { ideal: 1080 },
+          height: { ideal: 1920 }
+        } 
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -64,13 +68,21 @@ function PontoContent() {
     
     let blobPhoto: Blob | null = null;
     if (videoRef.current && canvasRef.current) {
-      const context = canvasRef.current.getContext('2d');
-      canvasRef.current.width = 240;
-      canvasRef.current.height = 180;
-      context?.drawImage(videoRef.current, 0, 0, 240, 180);
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+      
+      // Usa a resolução real da câmera (ex: 1080x1920) em vez de 240x180
+      canvas.width = video.videoWidth || 1080;
+      canvas.height = video.videoHeight || 1920;
+      
+      // Espelhar a imagem no canvas para não ficar invertida (já que a câmera frontal é espelhada no CSS)
+      context?.translate(canvas.width, 0);
+      context?.scale(-1, 1);
+      context?.drawImage(video, 0, 0, canvas.width, canvas.height);
       
       blobPhoto = await new Promise((resolve) => 
-        canvasRef.current?.toBlob(resolve, 'image/jpeg', 0.6)
+        canvas.toBlob(resolve, 'image/jpeg', 0.8) // Qualidade 80%
       );
     }
 
