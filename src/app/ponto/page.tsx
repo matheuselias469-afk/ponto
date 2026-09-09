@@ -140,14 +140,21 @@ function PontoContent() {
           {new Date().toLocaleTimeString('pt-BR', {timeZone: 'America/Sao_Paulo', hour: '2-digit', minute:'2-digit'})}
         </div>
 
-        <div className="relative w-full max-w-sm aspect-video bg-black rounded-xl overflow-hidden border-2 border-gray-700 shadow-lg">
-           <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover"></video>
-           <canvas ref={canvasRef} className="hidden"></canvas>
+        <div className="text-center w-full flex flex-col items-center">
+          <p className="text-gray-400 text-sm uppercase tracking-widest mb-4">Enquadre seu rosto</p>
+          
+          <div className="relative w-64 h-80 bg-gray-900 rounded-[120px] overflow-hidden border-4 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
+             <video ref={videoRef} autoPlay playsInline muted className="absolute top-0 left-0 w-full h-full object-cover transform -scale-x-100"></video>
+             <canvas ref={canvasRef} className="hidden"></canvas>
+             
+             {/* Efeito de Scanner de Banco */}
+             <div className="absolute inset-0 border-[6px] border-black/40 rounded-[120px] pointer-events-none z-10"></div>
+          </div>
         </div>
 
         <button 
           onClick={handleBaterPonto}
-          className="w-full max-w-sm bg-green-600 active:bg-green-700 text-white font-bold text-xl py-5 rounded-xl shadow-[0_4px_0_0_rgb(22,101,52)] active:shadow-none active:translate-y-1 transition-all"
+          className="w-full max-w-sm bg-green-600 active:bg-green-700 text-white font-bold text-xl py-5 rounded-xl shadow-[0_4px_0_0_rgb(22,101,52)] active:shadow-none active:translate-y-1 transition-all mt-4"
         >
           BATER PONTO AGORA
         </button>
