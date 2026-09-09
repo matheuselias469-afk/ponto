@@ -169,80 +169,63 @@ export default function AdminDashboard() {
 
         </div>
 
-        {/* Lista de Registros em Cards para Mobile */}
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Últimos Pontos Batidos</h2>
-        <div className="space-y-4">
+        {/* Lista de Registros Agrupados por Data */}
+        <h2 className="text-xl font-bold text-gray-800 mb-4 mt-8">Histórico de Pontos</h2>
+        <div className="space-y-8">
           {punches.length === 0 && (
             <div className="bg-white p-8 rounded-2xl text-center text-gray-500 border border-gray-100 shadow-sm">
               Nenhum ponto registrado ainda.
             </div>
           )}
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {punches.map((punch) => (
-              <div key={punch.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex flex-col">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex gap-3 items-center">
-                    {punch.photoUrl && punch.photoUrl !== 'mock-url-porque-sem-token.jpg' ? (
-                      <a href={punch.photoUrl} target="_blank" rel="noreferrer">
-                        <img 
-                          src={punch.photoUrl} 
-                          alt="Foto" 
-                          className="w-12 h-12 rounded-full object-cover border-2 border-gray-100 shadow-sm"
-                        />
-                      </a>
-                    ) : (
-                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-[10px] text-gray-400 font-medium">
-                        Sem foto
-                      </div>
-                    )}
-                    <div>
-                      <h3 className="font-bold text-gray-900">{punch.employee.name}</h3>
-                      <p className="text-xs text-gray-500 font-mono">Cód: {punch.employee.number}</p>
+          {/* Lógica de Agrupamento por Data */}
+          {Object.entries(
+            punches.reduce((acc: any, punch: any) => {
+              const dataStr = new Date(punch.timestamp).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+              if (!acc[dataStr]) acc[dataStr] = {};
+              if (!acc[dataStr][punch.employee.name]) acc[dataStr][punch.employee.name] = [];
+              acc[dataStr][punch.employee.name].push(punch);
+              return acc;
+            }, {})
+          ).map(([dataStr, employeeGroups]: any) => (
+            <div key={dataStr} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100">
+                📅 Data: {dataStr}
+              </h3>
+              
+              <div className="space-y-6">
+                {Object.entries(employeeGroups).map(([empName, empPunches]: any) => (
+                  <div key={empName} className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                      👤 {empName}
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                      {empPunches.map((p: any) => (
+                        <div key={p.id} className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center text-center">
+                          {p.photoUrl && p.photoUrl !== 'mock-url-porque-sem-token.jpg' ? (
+                            <a href={p.photoUrl} target="_blank" rel="noreferrer">
+                              <img src={p.photoUrl} alt="Foto" className="w-16 h-16 rounded-full object-cover border-2 border-blue-100 mb-2 shadow-sm" />
+                            </a>
+                          ) : (
+                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-[10px] text-gray-400 mb-2">Sem foto</div>
+                          )}
+                          <span className="font-bold text-gray-900 text-lg">
+                            {new Date(p.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute:'2-digit' })}
+                          </span>
+                          <span className="text-[10px] uppercase font-bold text-blue-600 mt-1">{p.type.replace('_', ' ')}</span>
+                          {p.distanceFromStoreMeters !== null && (
+                            <span className={`text-[10px] mt-1 ${p.distanceFromStoreMeters > 100 ? 'text-red-500' : 'text-green-600'}`}>
+                              Distância: {Math.round(p.distanceFromStoreMeters)}m
+                            </span>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  
-                  <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${
-                    punch.type === 'ENTRADA' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
-                    punch.type === 'SAIDA_ALMOCO' || punch.type === 'SAIDA' ? 'bg-orange-50 text-orange-600 border border-orange-100' :
-                    punch.type === 'VOLTA_ALMOCO' ? 'bg-green-50 text-green-600 border border-green-100' :
-                    'bg-red-50 text-red-600 border border-red-100'
-                  }`}>
-                    {punch.type.replace('_', ' ')}
-                  </span>
-                </div>
-
-                <div className="mt-auto space-y-2 pt-4 border-t border-gray-50">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Data/Hora:</span>
-                    <span className="font-medium text-gray-900">
-                      {new Date(punch.timestamp).toLocaleString('pt-BR', { 
-                        timeZone: 'America/Sao_Paulo',
-                        day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'
-                      })}
-                    </span>
-                  </div>
-                  
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Localização:</span>
-                    {punch.distanceFromStoreMeters !== null ? (
-                      <span className={`font-medium ${punch.distanceFromStoreMeters > 100 ? 'text-red-500' : 'text-green-600'}`}>
-                        {Math.round(punch.distanceFromStoreMeters)}m
-                      </span>
-                    ) : (
-                      <span className="text-gray-400">Sem GPS</span>
-                    )}
-                  </div>
-
-                  {punch.justification && (
-                    <div className="bg-gray-50 p-3 rounded-lg text-sm text-gray-600 italic mt-2 border border-gray-100">
-                      "{punch.justification}"
-                    </div>
-                  )}
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
 
       </div>
