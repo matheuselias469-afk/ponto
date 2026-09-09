@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function PontoScreen() {
+function PontoContent() {
   const searchParams = useSearchParams();
   const employeeId = searchParams.get('id');
   const router = useRouter();
@@ -64,7 +64,6 @@ export default function PontoScreen() {
     let blobPhoto: Blob | null = null;
     if (videoRef.current && canvasRef.current) {
       const context = canvasRef.current.getContext('2d');
-      // Redimensionar para ~240x180 p/ economizar dados
       canvasRef.current.width = 240;
       canvasRef.current.height = 180;
       context?.drawImage(videoRef.current, 0, 0, 240, 180);
@@ -137,7 +136,6 @@ export default function PontoScreen() {
           </div>
         )}
 
-        {/* Relógio em tempo real simplificado para o exemplo */}
         <div className="text-5xl font-bold tracking-tighter">
           {new Date().toLocaleTimeString('pt-BR', {timeZone: 'America/Sao_Paulo', hour: '2-digit', minute:'2-digit'})}
         </div>
@@ -153,11 +151,15 @@ export default function PontoScreen() {
         >
           BATER PONTO AGORA
         </button>
-
-        <button className="w-full max-w-sm text-gray-400 underline py-2 text-sm">
-          Registrar Saída Antecipada (Justificativa)
-        </button>
       </div>
     </main>
+  );
+}
+
+export default function PontoScreen() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Carregando...</div>}>
+      <PontoContent />
+    </Suspense>
   );
 }
