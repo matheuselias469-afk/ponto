@@ -7,27 +7,46 @@ import Link from 'next/link';
 export default function AdminDashboard() {
   const router = useRouter();
   const [punches, setPunches] = useState<any[]>([]);
+  const [inviteKey, setInviteKey] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Verifica login
     const isAuth = localStorage.getItem('admin_auth');
     if (!isAuth) {
       router.push('/admin/login');
       return;
     }
 
-    // Busca os dados
+    // Busca os pontos
     fetch('/api/admin/punches')
       .then(res => res.json())
+      .then(data => setPunches(data.punches || []));
+
+    // Busca a chave atual
+    fetch('/api/admin/settings')
+      .then(res => res.json())
       .then(data => {
-        setPunches(data.punches || []);
+        if (data.settings?.adminPin) setInviteKey(data.settings.adminPin);
         setLoading(false);
       });
   }, [router]);
 
+  const handleUpdateKey = async () => {
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inviteKey })
+      });
+      if (res.ok) alert('Chave de segurança atualizada com sucesso!');
+      else alert('Erro ao atualizar a chave.');
+    } catch (e) {
+      alert('Erro ao conectar.');
+    }
+  };
+
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50">Carregando painel...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-900">Carregando painel...</div>;
   }
 
   const handleLogout = () => {
@@ -40,7 +59,7 @@ export default function AdminDashboard() {
       <div className="max-w-6xl mx-auto">
         
         {/* Cabeçalho Bonito e Responsivo */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6 gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Painel do Gestor</h1>
             <p className="text-gray-500 mt-1">Bem-vindo, Matheus. Aqui estão os registros recentes.</p>
@@ -49,13 +68,35 @@ export default function AdminDashboard() {
             <Link href="/api/admin/report" className="flex-1 md:flex-none text-center bg-green-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-sm">
               Gerar Excel
             </Link>
-            <button onClick={handleLogout} className="flex-1 md:flex-none bg-gray-100 text-gray-700 px-5 py-2.5 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
+            <button onClick={handleLogout} className="flex-1 md:flex-none bg-gray-100 text-gray-900 px-5 py-2.5 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
               Sair
             </button>
           </div>
         </div>
 
+        {/* Gerenciador de Chave de Segurança */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-blue-100 mb-8 flex flex-col md:flex-row items-start md:items-end gap-4 bg-gradient-to-r from-blue-50 to-white">
+          <div className="flex-1">
+            <h2 className="text-lg font-bold text-blue-900 mb-1">Chave de Segurança (Cadastro)</h2>
+            <p className="text-sm text-blue-700 mb-3">Compartilhe essa chave para os funcionários criarem suas contas.</p>
+            <input 
+              type="text" 
+              value={inviteKey}
+              onChange={(e) => setInviteKey(e.target.value)}
+              className="w-full md:max-w-xs p-3 bg-white border border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 text-black font-bold tracking-wide"
+              placeholder="Digite uma nova chave"
+            />
+          </div>
+          <button 
+            onClick={handleUpdateKey}
+            className="w-full md:w-auto bg-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-blue-700 transition shadow-sm"
+          >
+            Atualizar Chave
+          </button>
+        </div>
+
         {/* Lista de Registros em Cards para Mobile */}
+        <h2 className="text-xl font-bold text-gray-800 mb-4">Últimos Pontos Batidos</h2>
         <div className="space-y-4">
           {punches.length === 0 && (
             <div className="bg-white p-8 rounded-2xl text-center text-gray-500 border border-gray-100 shadow-sm">

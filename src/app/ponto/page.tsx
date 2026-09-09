@@ -115,7 +115,7 @@ function PontoContent() {
             maxLength={4}
             value={pin}
             onChange={(e) => setPin(e.target.value)}
-            className="text-center text-4xl tracking-widest p-4 border-2 border-gray-300 rounded-lg w-full mb-6 focus:border-blue-500 focus:outline-none"
+            className="text-center text-4xl tracking-widest p-4 border-2 border-gray-300 rounded-lg w-full mb-6 focus:border-blue-500 focus:outline-none text-black"
             autoFocus
           />
           <button type="submit" disabled={pin.length !== 4} className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg disabled:opacity-50">

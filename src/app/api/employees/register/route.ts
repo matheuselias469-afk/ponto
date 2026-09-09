@@ -6,18 +6,18 @@ export async function POST(request: Request) {
     const data = await request.json();
     const { secretKey, name, number, role, pin } = data;
 
-    // A Chave de Segurança única que o Gestor tem (podemos colocar em variaveis de ambiente depois)
-    const MANAGER_SECRET_KEY = process.env.INVITE_KEY || '14060920';
+    // Busca a chave de segurança dinâmica do banco de dados (guardada no campo adminPin)
+    let settings = await prisma.settings.findUnique({ where: { id: 'singleton' } });
+    const MANAGER_SECRET_KEY = settings?.adminPin || '14060920';
 
     if (secretKey !== MANAGER_SECRET_KEY) {
-      return NextResponse.json({ error: 'Chave de Segurança inválida.' }, { status: 403 });
+      return NextResponse.json({ error: 'Chave de Segurança inválida. Peça a nova chave ao gestor.' }, { status: 403 });
     }
 
     if (!name || !number || !role || !pin) {
       return NextResponse.json({ error: 'Preencha todos os campos.' }, { status: 400 });
     }
 
-    // Verifica se o código contábil já existe
     const existingEmployee = await prisma.employee.findUnique({
       where: { number: number }
     });
@@ -26,7 +26,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Este código de funcionário já está em uso.' }, { status: 400 });
     }
 
-    // Cria o funcionário no banco
     const newEmployee = await prisma.employee.create({
       data: {
         name,
@@ -34,7 +33,7 @@ export async function POST(request: Request) {
         role,
         pin,
         active: true,
-        admissionDate: new Date(), // Padrão usa o dia de hoje
+        admissionDate: new Date(),
       }
     });
 

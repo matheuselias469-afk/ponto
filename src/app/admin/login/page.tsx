@@ -37,7 +37,7 @@ export default function AdminLogin() {
               type="text" 
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+              className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-black placeholder-gray-400"
               placeholder="Ex: Matheus"
               required
             />
@@ -49,7 +49,7 @@ export default function AdminLogin() {
               type="password" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+              className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-black placeholder-gray-400"
               placeholder="••••••••"
               required
             />

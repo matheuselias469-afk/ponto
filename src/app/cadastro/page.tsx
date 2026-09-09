@@ -66,7 +66,7 @@ export default function CadastroScreen() {
               required
               value={formData.secretKey}
               onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-black placeholder-gray-400"
               placeholder="Ex: LOJA123"
             />
           </div>
@@ -79,7 +79,7 @@ export default function CadastroScreen() {
               required
               value={formData.name}
               onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-black placeholder-gray-400"
             />
           </div>
 
@@ -92,7 +92,7 @@ export default function CadastroScreen() {
                 required
                 value={formData.number}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-black placeholder-gray-400"
                 placeholder="Ex: 6"
               />
             </div>
@@ -107,7 +107,7 @@ export default function CadastroScreen() {
                 required
                 value={formData.pin}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 tracking-widest text-center font-bold"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 tracking-widest text-center font-bold text-black placeholder-gray-400"
                 placeholder="****"
               />
             </div>
@@ -121,7 +121,7 @@ export default function CadastroScreen() {
               required
               value={formData.role}
               onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-black placeholder-gray-400"
               placeholder="Ex: Aux. Administrativo"
             />
           </div>
