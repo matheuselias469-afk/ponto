@@ -194,35 +194,47 @@ export default function AdminDashboard() {
               </h3>
               
               <div className="space-y-6">
-                {Object.entries(employeeGroups).map(([empName, empPunches]: any) => (
-                  <div key={empName} className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
-                      👤 {empName}
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                      {empPunches.map((p: any) => (
-                        <div key={p.id} className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center text-center">
-                          {p.photoUrl && p.photoUrl !== 'mock-url-porque-sem-token.jpg' ? (
-                            <a href={p.photoUrl} target="_blank" rel="noreferrer">
-                              <img src={p.photoUrl} alt="Foto" className="w-16 h-16 rounded-full object-cover border-2 border-blue-100 mb-2 shadow-sm" />
-                            </a>
-                          ) : (
-                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-[10px] text-gray-400 mb-2">Sem foto</div>
-                          )}
-                          <span className="font-bold text-gray-900 text-lg">
-                            {new Date(p.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute:'2-digit' })}
-                          </span>
-                          <span className="text-[10px] uppercase font-bold text-blue-600 mt-1">{p.type.replace('_', ' ')}</span>
-                          {p.distanceFromStoreMeters !== null && (
-                            <span className={`text-[10px] mt-1 ${p.distanceFromStoreMeters > 100 ? 'text-red-500' : 'text-green-600'}`}>
-                              Distância: {Math.round(p.distanceFromStoreMeters)}m
+                {Object.entries(employeeGroups).map(([empName, empPunches]: any) => {
+                  // Ordenar do menor horário (mais antigo) para o maior (mais recente)
+                  const sortedPunches = [...empPunches].sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+                  return (
+                    <div key={empName} className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                      <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                        👤 {empName}
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                        {sortedPunches.map((p: any) => (
+                          <div key={p.id} className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center text-center">
+                            {p.photoUrl && p.photoUrl !== 'mock-url-porque-sem-token.jpg' ? (
+                              <a href={p.photoUrl} target="_blank" rel="noreferrer">
+                                <img src={p.photoUrl} alt="Foto" className="w-16 h-16 rounded-full object-cover border-2 border-blue-100 mb-2 shadow-sm" />
+                              </a>
+                            ) : (
+                              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-[10px] text-gray-400 mb-2">Sem foto</div>
+                            )}
+                            <span className="font-bold text-gray-900 text-lg">
+                              {new Date(p.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute:'2-digit' })}
                             </span>
-                          )}
-                        </div>
-                      ))}
+                            <span className="text-[10px] uppercase font-bold text-blue-600 mt-1 mb-1">{p.type.replace('_', ' ')}</span>
+                            
+                            {p.distanceFromStoreMeters !== null && p.latitude && p.longitude && (
+                              <a 
+                                href={`https://www.google.com/maps?q=${p.latitude},${p.longitude}`} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className={`text-[11px] font-bold mt-1 px-2 py-1 rounded hover:opacity-80 transition-opacity ${p.distanceFromStoreMeters > 100 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}
+                                title="Ver no mapa"
+                              >
+                                📍 {Math.round(p.distanceFromStoreMeters)}m
+                              </a>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}
