@@ -8,6 +8,9 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [punches, setPunches] = useState<any[]>([]);
   const [inviteKey, setInviteKey] = useState('');
+  const [storeLat, setStoreLat] = useState(0);
+  const [storeLon, setStoreLon] = useState(0);
+  const [storeRadius, setStoreRadius] = useState(100);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,11 +25,16 @@ export default function AdminDashboard() {
       .then(res => res.json())
       .then(data => setPunches(data.punches || []));
 
-    // Busca a chave atual
+    // Busca configurações (Chave e Localização)
     fetch('/api/admin/settings')
       .then(res => res.json())
       .then(data => {
-        if (data.settings?.adminPin) setInviteKey(data.settings.adminPin);
+        if (data.settings) {
+          setInviteKey(data.settings.adminPin || '');
+          setStoreLat(data.settings.latitude || 0);
+          setStoreLon(data.settings.longitude || 0);
+          setStoreRadius(data.settings.radiusMeters || 100);
+        }
         setLoading(false);
       });
   }, [router]);
@@ -40,6 +48,34 @@ export default function AdminDashboard() {
       });
       if (res.ok) alert('Chave de segurança atualizada com sucesso!');
       else alert('Erro ao atualizar a chave.');
+    } catch (e) {
+      alert('Erro ao conectar.');
+    }
+  };
+
+  const handleGetLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setStoreLat(pos.coords.latitude);
+          setStoreLon(pos.coords.longitude);
+        },
+        () => alert('Erro: ative o GPS do celular/computador para pegar a localização.')
+      );
+    } else {
+      alert('GPS não suportado.');
+    }
+  };
+
+  const handleUpdateLocation = async () => {
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ latitude: storeLat, longitude: storeLon, radiusMeters: storeRadius })
+      });
+      if (res.ok) alert('Localização da loja salva com sucesso!');
+      else alert('Erro ao salvar localização.');
     } catch (e) {
       alert('Erro ao conectar.');
     }
@@ -74,25 +110,63 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Gerenciador de Chave de Segurança */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-blue-100 mb-8 flex flex-col md:flex-row items-start md:items-end gap-4 bg-gradient-to-r from-blue-50 to-white">
-          <div className="flex-1">
-            <h2 className="text-lg font-bold text-blue-900 mb-1">Chave de Segurança (Cadastro)</h2>
-            <p className="text-sm text-blue-700 mb-3">Compartilhe essa chave para os funcionários criarem suas contas.</p>
-            <input 
-              type="text" 
-              value={inviteKey}
-              onChange={(e) => setInviteKey(e.target.value)}
-              className="w-full md:max-w-xs p-3 bg-white border border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 text-black font-bold tracking-wide"
-              placeholder="Digite uma nova chave"
-            />
+        {/* Painel de Configurações Dividido em 2 Colunas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          
+          {/* Gerenciador de Chave de Segurança */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-blue-100 flex flex-col gap-4 bg-gradient-to-r from-blue-50 to-white">
+            <div className="flex-1">
+              <h2 className="text-lg font-bold text-blue-900 mb-1">Chave de Segurança (Cadastro)</h2>
+              <p className="text-sm text-blue-700 mb-3">Compartilhe para os funcionários criarem contas.</p>
+              <input 
+                type="text" 
+                value={inviteKey}
+                onChange={(e) => setInviteKey(e.target.value)}
+                className="w-full p-3 bg-white border border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 text-black font-bold tracking-wide"
+                placeholder="Ex: MINHALOJA2026"
+              />
+            </div>
+            <button 
+              onClick={handleUpdateKey}
+              className="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-blue-700 transition shadow-sm"
+            >
+              Atualizar Chave
+            </button>
           </div>
-          <button 
-            onClick={handleUpdateKey}
-            className="w-full md:w-auto bg-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-blue-700 transition shadow-sm"
-          >
-            Atualizar Chave
-          </button>
+
+          {/* Configuração de Localização da Loja */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-orange-100 flex flex-col gap-4 bg-gradient-to-r from-orange-50 to-white">
+            <div className="flex-1">
+              <h2 className="text-lg font-bold text-orange-900 mb-1">Localização da Loja (GPS)</h2>
+              <p className="text-sm text-orange-700 mb-3">Defina onde fica a loja para o bloqueio de raio funcionar.</p>
+              <div className="flex gap-2 mb-2">
+                <button 
+                  onClick={handleGetLocation}
+                  className="w-full bg-orange-100 text-orange-800 border border-orange-200 font-bold py-2 rounded-lg hover:bg-orange-200 transition text-sm flex justify-center items-center gap-2"
+                >
+                  📍 Pegar minha localização atual
+                </button>
+              </div>
+              <div className="flex gap-2 text-sm text-gray-700 mb-2">
+                <span className="flex-1 bg-white p-2 border border-orange-200 rounded-lg font-mono truncate">Lat: {storeLat}</span>
+                <span className="flex-1 bg-white p-2 border border-orange-200 rounded-lg font-mono truncate">Lon: {storeLon}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm mt-3">
+                <span className="font-bold text-orange-900">Raio Permitido:</span>
+                <div className="flex items-center gap-2">
+                  <input type="number" value={storeRadius} onChange={e => setStoreRadius(Number(e.target.value))} className="w-16 p-1 text-center border rounded font-bold text-black"/>
+                  <span className="text-orange-900 font-bold">metros</span>
+                </div>
+              </div>
+            </div>
+            <button 
+              onClick={handleUpdateLocation}
+              className="w-full bg-orange-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-orange-700 transition shadow-sm"
+            >
+              Salvar Localização
+            </button>
+          </div>
+
         </div>
 
         {/* Lista de Registros em Cards para Mobile */}
