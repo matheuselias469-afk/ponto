@@ -35,8 +35,11 @@ export default async function Home() {
         </div>
       </div>
       
-      <div className="mt-8">
-        <Link href="/admin" className="text-sm text-gray-400 hover:text-gray-600 underline">
+      <div className="mt-8 flex flex-col space-y-2 items-center">
+        <Link href="/cadastro" className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg font-medium hover:bg-blue-200 transition">
+          Primeiro Acesso? Criar Conta
+        </Link>
+        <Link href="/admin" className="text-sm text-gray-400 hover:text-gray-600 underline mt-4">
           Acesso do Gestor
         </Link>
       </div>
