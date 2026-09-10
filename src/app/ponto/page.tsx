@@ -152,100 +152,180 @@ function PontoContent() {
 
   if (successPunch) {
     return (
-      <main className="min-h-screen bg-green-600 flex flex-col items-center justify-center p-6 text-white text-center">
-        <div className="w-24 h-24 bg-white text-green-600 rounded-full flex items-center justify-center text-5xl mb-6 shadow-xl">
-          ✓
-        </div>
-        <h1 className="text-3xl font-extrabold mb-2">Ponto Concluído!</h1>
-        <p className="text-green-100 text-lg mb-8">
-          Registro de <strong className="uppercase bg-green-800 px-2 py-1 rounded">{successPunch.type.replace('_', ' ')}</strong> salvo com sucesso.
-        </p>
+      <main className="min-h-screen bg-gradient-to-br from-[#0d394e] to-[#041620] flex flex-col items-center justify-center p-6 text-white text-center relative overflow-hidden">
+        {/* Background glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#cca158]/20 blur-[100px] rounded-full pointer-events-none"></div>
         
-        <div className="bg-green-700 p-6 rounded-2xl w-full max-w-sm mb-12 shadow-inner">
-          <p className="text-sm text-green-200 uppercase tracking-widest mb-1">Horário Registrado</p>
-          <p className="text-4xl font-bold font-mono">
-            {new Date(successPunch.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute:'2-digit' })}
+        <div className="animate-fade-in-up flex flex-col items-center relative z-10 w-full max-w-md">
+          <div className="w-28 h-28 bg-gradient-to-br from-[#cca158] to-[#99763d] rounded-full flex items-center justify-center text-6xl mb-8 shadow-[0_0_50px_rgba(204,161,88,0.4)] border-4 border-white/10">
+            <span className="drop-shadow-md">✓</span>
+          </div>
+          
+          <h1 className="text-4xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">Ponto Registrado</h1>
+          <p className="text-[#cca158] text-lg mb-10 font-medium tracking-wide">
+            {successPunch.type.replace('_', ' ')}
           </p>
+          
+          <div className="bg-white/5 backdrop-blur-xl p-8 rounded-[2rem] w-full border border-white/10 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#cca158] to-transparent opacity-50"></div>
+            <p className="text-sm text-white/50 uppercase tracking-[0.2em] mb-2 font-bold">Horário Oficial</p>
+            <p className="text-5xl font-light font-mono text-white drop-shadow-md">
+              {new Date(successPunch.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute:'2-digit' })}
+            </p>
+          </div>
+
+          <button 
+            onClick={() => router.push('/')}
+            className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-lg py-5 rounded-2xl shadow-xl active:scale-95 transition-all duration-300 mt-12 backdrop-blur-sm"
+          >
+            FECHAR TELA
+          </button>
         </div>
 
-        <button 
-          onClick={() => router.push('/')}
-          className="w-full max-w-sm bg-white text-green-700 font-extrabold text-xl py-4 rounded-xl shadow-lg active:scale-95 transition-transform"
-        >
-          FECHAR
-        </button>
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .animate-fade-in-up {
+            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+        `}} />
       </main>
     );
   }
 
   if (step === 1) {
     return (
-      <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-        <form onSubmit={handlePinSubmit} className="w-full max-w-sm bg-white rounded-xl shadow p-8 flex flex-col items-center">
-          <h2 className="text-xl font-bold mb-4">Digite seu PIN</h2>
+      <main className="min-h-screen bg-gradient-to-br from-[#0d394e] to-[#041620] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        {/* Elementos decorativos */}
+        <div className="absolute top-1/4 left-0 w-72 h-72 bg-[#cca158]/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <form onSubmit={handlePinSubmit} className="w-full max-w-sm bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] shadow-2xl p-8 flex flex-col items-center animate-fade-in-up relative z-10">
+          
+          <div className="w-16 h-16 bg-[#cca158]/10 rounded-full flex items-center justify-center mb-6 border border-[#cca158]/30">
+            <span className="text-2xl">🔒</span>
+          </div>
+          
+          <h2 className="text-xl font-medium text-white mb-2 tracking-wide">Digite seu PIN</h2>
+          <p className="text-[#cca158] text-sm mb-8 text-center opacity-80">Senha de 4 dígitos cadastrada</p>
+          
           <input 
-            type="tel" 
+            type="password" 
             inputMode="numeric"
             pattern="[0-9]*"
             maxLength={4}
             value={pin}
             onChange={(e) => setPin(e.target.value)}
-            className="text-center text-4xl tracking-widest p-4 border-2 border-gray-300 rounded-lg w-full mb-6 focus:border-blue-500 focus:outline-none text-black"
+            className="text-center text-5xl tracking-[0.5em] p-4 bg-black/20 border-b-2 border-white/20 w-full mb-10 focus:border-[#cca158] focus:outline-none text-white font-light transition-colors placeholder-white/10"
             autoFocus
+            placeholder="••••"
           />
-          <button type="submit" disabled={pin.length !== 4} className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg disabled:opacity-50">
-            Avançar
+          
+          <button 
+            type="submit" 
+            disabled={pin.length !== 4 || loadingPin} 
+            className="w-full bg-gradient-to-r from-[#cca158] to-[#aa8343] text-[#0d394e] font-black text-lg py-4 rounded-xl disabled:opacity-50 disabled:grayscale transition-all duration-300 transform hover:-translate-y-1 hover:shadow-[0_8px_20px_rgb(204,161,88,0.3)] flex justify-center items-center gap-2"
+          >
+            {loadingPin ? 'VERIFICANDO...' : 'ENTRAR'}
           </button>
         </form>
+
+        <button onClick={() => router.push('/')} className="mt-8 text-white/50 hover:text-white text-sm transition-colors relative z-10 flex items-center gap-2">
+          <span>←</span> Voltar
+        </button>
+
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .animate-fade-in-up {
+            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+        `}} />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-900 text-white flex flex-col p-4">
-      <div className="flex-1 flex flex-col items-center justify-center space-y-6">
+    <main className="min-h-screen bg-gradient-to-br from-[#0d394e] to-[#041620] text-white flex flex-col p-4 relative overflow-hidden">
+      
+      {/* Background glow */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+        <div className="w-[120%] h-[120%] bg-[#cca158]/5 blur-[100px] rounded-full"></div>
+      </div>
+
+      <div className="flex-1 flex flex-col items-center justify-center space-y-6 relative z-10 animate-fade-in-up">
         
+        {/* Voltar e Logo Reduzida no Topo */}
+        <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-20">
+           <button onClick={() => setStep(1)} className="text-white/60 hover:text-white bg-black/20 p-2 rounded-full backdrop-blur-md">
+             ←
+           </button>
+           <img src="/decor-logo.png" alt="Decor" className="w-10 h-10 object-contain opacity-80" />
+        </div>
+
         {locError && (
-          <div className="bg-red-500/20 text-red-200 p-4 rounded-lg text-center w-full max-w-sm border border-red-500">
+          <div className="bg-red-500/20 text-red-200 p-4 rounded-2xl text-center w-full max-w-sm border border-red-500/50 backdrop-blur-sm text-sm">
             {locError}
           </div>
         )}
 
-        <div className="text-5xl font-bold tracking-tighter">
+        <div className="text-5xl font-black tracking-tighter text-[#cca158] drop-shadow-[0_0_15px_rgba(204,161,88,0.3)] mt-8">
           {new Date().toLocaleTimeString('pt-BR', {timeZone: 'America/Sao_Paulo', hour: '2-digit', minute:'2-digit'})}
         </div>
 
         <div className="text-center w-full flex flex-col items-center">
           {pendingPunch && (
-            <div className="bg-purple-600 p-4 rounded-xl mb-4 w-full max-w-sm border-2 border-purple-400 shadow-lg animate-pulse">
-              <p className="text-purple-100 text-xs uppercase font-bold tracking-widest mb-1">Solicitação Pendente</p>
-              <p className="font-bold">O Gestor solicitou confirmar:</p>
-              <p className="text-xl font-black bg-purple-800 rounded px-2 py-1 mt-1 uppercase">{pendingPunch.type.replace('_', ' ')} às {new Date(pendingPunch.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute:'2-digit' })}</p>
+            <div className="bg-gradient-to-r from-purple-900/80 to-purple-800/80 p-5 rounded-2xl mb-6 w-full max-w-sm border border-purple-500/50 shadow-xl backdrop-blur-md animate-pulse">
+              <p className="text-purple-200 text-xs uppercase font-bold tracking-widest mb-1 flex items-center justify-center gap-2"><span>⚠️</span> Confirmação Requerida</p>
+              <p className="font-medium text-sm text-purple-50">O Gestor solicitou o registro retroativo de:</p>
+              <p className="text-2xl font-black text-white mt-1 uppercase tracking-wide">{pendingPunch.type.replace('_', ' ')} <span className="text-purple-300 opacity-80">às</span> {new Date(pendingPunch.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute:'2-digit' })}</p>
             </div>
           )}
 
-          <p className="text-gray-400 text-sm uppercase tracking-widest mb-4">Enquadre seu rosto</p>
+          <p className="text-[#cca158] text-xs uppercase tracking-[0.2em] mb-4 font-bold">Enquadre seu Rosto</p>
           
-          <div className="relative w-full aspect-[9/16] max-h-[55vh] bg-black rounded-[40px] overflow-hidden border-4 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.2)]">
+          <div className="relative w-full aspect-[9/16] max-h-[55vh] bg-black rounded-[2.5rem] overflow-hidden border-2 border-[#cca158]/50 shadow-[0_0_40px_rgba(204,161,88,0.15)] ring-4 ring-black/20">
              <video ref={videoRef} autoPlay playsInline muted className="absolute top-0 left-0 w-full h-full object-cover transform -scale-x-100"></video>
              <canvas ref={canvasRef} className="hidden"></canvas>
              
-             {/* Efeito de Scanner de Banco (Overlay escuro com furo oval) */}
-             <div className="absolute inset-0 pointer-events-none z-10" style={{ background: 'radial-gradient(ellipse 65% 55% at 50% 50%, transparent 40%, rgba(0,0,0,0.7) 100%)' }}></div>
+             {/* Overlay escuro com furo oval */}
+             <div className="absolute inset-0 pointer-events-none z-10" style={{ background: 'radial-gradient(ellipse 65% 55% at 50% 50%, transparent 40%, rgba(13,57,78,0.85) 100%)' }}></div>
              
-             {/* Guia Oval Tracejada */}
-             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[65%] h-[55%] border-[4px] border-dashed border-green-400 rounded-[120px] opacity-80 pointer-events-none z-20"></div>
+             {/* Guia Oval Tracejada Dourada */}
+             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[65%] h-[55%] border-[3px] border-dashed border-[#cca158] rounded-[120px] opacity-60 pointer-events-none z-20 shadow-[0_0_15px_rgba(204,161,88,0.5)]"></div>
+             
+             {/* Scanner line animado */}
+             <div className="absolute top-1/4 left-1/4 right-1/4 h-[2px] bg-[#cca158] shadow-[0_0_10px_#cca158] z-30 opacity-50 scanner-animation"></div>
           </div>
         </div>
 
         <button 
           onClick={handleBaterPonto}
           disabled={isSubmitting}
-          className={`w-full max-w-sm text-white font-bold text-xl py-5 rounded-xl shadow-[0_4px_0_0_rgba(0,0,0,0.3)] active:shadow-none active:translate-y-1 transition-all mt-4 ${pendingPunch ? 'bg-purple-600 active:bg-purple-700' : 'bg-green-600 active:bg-green-700'} disabled:opacity-50 disabled:cursor-not-allowed`}
+          className={`w-full max-w-sm text-[#0d394e] font-black text-xl py-5 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] active:scale-95 transition-all duration-300 mt-4 
+            ${pendingPunch 
+              ? 'bg-gradient-to-r from-purple-400 to-purple-600 shadow-[0_0_20px_rgba(168,85,247,0.4)]' 
+              : 'bg-gradient-to-r from-[#cca158] to-[#aa8343] hover:shadow-[0_0_25px_rgba(204,161,88,0.4)]'} 
+            disabled:opacity-50 disabled:cursor-not-allowed`}
         >
-          {isSubmitting ? 'ENVIANDO...' : (pendingPunch ? 'CONFIRMAR PONTO ATRASADO' : 'BATER PONTO AGORA')}
+          {isSubmitting ? 'ENVIANDO FOTO...' : (pendingPunch ? 'CONFIRMAR PONTO' : 'BATER PONTO')}
         </button>
       </div>
+
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes scan {
+          0% { top: 25%; opacity: 0; }
+          10% { opacity: 0.8; }
+          90% { opacity: 0.8; }
+          100% { top: 75%; opacity: 0; }
+        }
+        .scanner-animation {
+          animation: scan 3s infinite linear;
+        }
+      `}} />
     </main>
   );
 }
