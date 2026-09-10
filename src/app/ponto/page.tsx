@@ -56,6 +56,7 @@ function PontoContent() {
   const [successPunch, setSuccessPunch] = useState<any>(null);
   const [pendingPunch, setPendingPunch] = useState<any>(null);
   const [loadingPin, setLoadingPin] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +91,9 @@ function PontoContent() {
       alert("Aguardando GPS...");
       return;
     }
+    
+    if (isSubmitting) return; // Evita duplo clique
+    setIsSubmitting(true);
     
     let blobPhoto: Blob | null = null;
     if (videoRef.current && canvasRef.current) {
@@ -138,9 +142,11 @@ function PontoContent() {
         setSuccessPunch(data.punch);
       } else {
         alert("Erro: " + data.error);
+        setIsSubmitting(false);
       }
     } catch (e) {
       alert("Erro de conexão ao salvar ponto.");
+      setIsSubmitting(false);
     }
   };
 
@@ -234,9 +240,10 @@ function PontoContent() {
 
         <button 
           onClick={handleBaterPonto}
-          className={`w-full max-w-sm text-white font-bold text-xl py-5 rounded-xl shadow-[0_4px_0_0_rgba(0,0,0,0.3)] active:shadow-none active:translate-y-1 transition-all mt-4 ${pendingPunch ? 'bg-purple-600 active:bg-purple-700' : 'bg-green-600 active:bg-green-700'}`}
+          disabled={isSubmitting}
+          className={`w-full max-w-sm text-white font-bold text-xl py-5 rounded-xl shadow-[0_4px_0_0_rgba(0,0,0,0.3)] active:shadow-none active:translate-y-1 transition-all mt-4 ${pendingPunch ? 'bg-purple-600 active:bg-purple-700' : 'bg-green-600 active:bg-green-700'} disabled:opacity-50 disabled:cursor-not-allowed`}
         >
-          {pendingPunch ? 'CONFIRMAR PONTO ATRASADO' : 'BATER PONTO AGORA'}
+          {isSubmitting ? 'ENVIANDO...' : (pendingPunch ? 'CONFIRMAR PONTO ATRASADO' : 'BATER PONTO AGORA')}
         </button>
       </div>
     </main>
