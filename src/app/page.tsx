@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import prisma from '@/lib/prisma';
+import PushNotifications from '@/components/PushNotifications';
 
 export const dynamic = 'force-dynamic'; // Para não fazer cache da lista de funcionários
 
@@ -63,6 +64,8 @@ export default async function Home() {
         <Link href="/admin" className="text-xs text-white/40 hover:text-white/80 transition-colors uppercase tracking-widest">
           Painel do Gestor
         </Link>
+        
+        <PushNotifications />
       </div>
 
       <style dangerouslySetInnerHTML={{__html: `

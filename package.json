@@ -10,6 +10,7 @@
     "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {
+    "@types/web-push": "^3.6.4",
     "@vercel/blob": "^2.8.0",
     "date-fns": "^4.4.0",
     "exceljs": "^4.4.0",
@@ -17,6 +18,7 @@
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "web-push": "^3.6.7",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

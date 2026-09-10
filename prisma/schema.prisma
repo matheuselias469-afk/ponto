@@ -112,3 +112,13 @@ model Settings {
   radiusMeters      Int    @default(100)
   notificationTimes String @default("[]") // JSON Array de horários ["08:00", "12:00"]
 }
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  deviceOS  String?
+  createdAt DateTime @default(now())
+}
+
