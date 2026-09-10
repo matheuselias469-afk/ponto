@@ -1,0 +1,17 @@
+{
+  "name": "Ponto Decor",
+  "short_name": "Ponto Decor",
+  "description": "Sistema de controle de ponto da Decor",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d394e",
+  "theme_color": "#0d394e",
+  "icons": [
+    {
+      "src": "/decor-logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
