@@ -14,37 +14,32 @@ export default function AdminDashboard() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [pendingPunches, setPendingPunches] = useState<any[]>([]);
   const [lateForm, setLateForm] = useState({ employeeId: '', date: '', time: '', type: 'ENTRADA' });
+  const [eventForm, setEventForm] = useState({ employeeId: 'all', date: '', eventType: 'FERIADO' });
   const [reportForm, setReportForm] = useState({ employeeId: 'all', month: new Date().getMonth() + 1, year: new Date().getFullYear() });
   const [loading, setLoading] = useState(true);
 
+  // Estados para o Histórico de Pontos
+  const [filterMonth, setFilterMonth] = useState(new Date().getMonth() + 1);
+  const [filterYear, setFilterYear] = useState(new Date().getFullYear());
+  const [expandedEmp, setExpandedEmp] = useState<string | null>(null);
+
+  const toggleAccordion = (empName: string) => {
+    setExpandedEmp(prev => prev === empName ? null : empName);
+  };
+
   const fetchData = () => {
-    // Busca os pontos
-    fetch('/api/admin/punches')
-      .then(res => res.json())
-      .then(data => setPunches(data.punches || []));
-
-    // Busca funcionários para o form
-    fetch('/api/admin/employees')
-      .then(res => res.json())
-      .then(data => setEmployees(data.employees || []));
-
-    // Busca solicitações de pontos pendentes
-    fetch('/api/admin/pending-punches')
-      .then(res => res.json())
-      .then(data => setPendingPunches(data.pending || []));
-
-    // Busca a chave atual
-    fetch('/api/admin/settings')
-      .then(res => res.json())
-      .then(data => {
-        if (data.settings) {
-          setInviteKey(data.settings.adminPin || '');
-          setStoreLat(data.settings.latitude || 0);
-          setStoreLon(data.settings.longitude || 0);
-          setStoreRadius(data.settings.radiusMeters || 100);
-        }
-        setLoading(false);
-      });
+    fetch('/api/admin/punches').then(res => res.json()).then(data => setPunches(data.punches || []));
+    fetch('/api/admin/employees').then(res => res.json()).then(data => setEmployees(data.employees || []));
+    fetch('/api/admin/pending-punches').then(res => res.json()).then(data => setPendingPunches(data.pending || []));
+    fetch('/api/admin/settings').then(res => res.json()).then(data => {
+      if (data.settings) {
+        setInviteKey(data.settings.adminPin || '');
+        setStoreLat(data.settings.latitude || 0);
+        setStoreLon(data.settings.longitude || 0);
+        setStoreRadius(data.settings.radiusMeters || 100);
+      }
+      setLoading(false);
+    });
   };
 
   useEffect(() => {
@@ -65,9 +60,29 @@ export default function AdminDashboard() {
         body: JSON.stringify(lateForm)
       });
       if (res.ok) {
-        alert('Solicitação de Ponto Atrasado enviada! O funcionário deverá confirmá-la na próxima vez que bater o ponto.');
+        alert('Solicitação enviada!');
         setLateForm({ employeeId: '', date: '', time: '', type: 'ENTRADA' });
         fetchData();
+      } else {
+        const err = await res.json();
+        alert('Erro: ' + err.error);
+      }
+    } catch (e) {
+      alert('Erro de conexão.');
+    }
+  };
+
+  const handleCreateEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/admin/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventForm)
+      });
+      if (res.ok) {
+        alert('Evento registrado com sucesso!');
+        setEventForm({ employeeId: 'all', date: '', eventType: 'FERIADO' });
       } else {
         const err = await res.json();
         alert('Erro: ' + err.error);
@@ -321,6 +336,57 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {/* --- FERIADOS E FOLGAS --- */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-pink-100 mb-8 bg-gradient-to-r from-pink-50 to-white">
+          <h2 className="text-xl font-bold text-pink-900 mb-1">Registrar Feriado ou Folga</h2>
+          <p className="text-sm text-pink-700 mb-4">Marque os dias que não haverá expediente para preencher o Excel corretamente.</p>
+          
+          <form onSubmit={handleCreateEvent} className="space-y-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <label className="block text-xs font-bold text-pink-800 mb-1 uppercase">Funcionário</label>
+                <select 
+                  required 
+                  value={eventForm.employeeId} 
+                  onChange={e => setEventForm({...eventForm, employeeId: e.target.value})}
+                  className="w-full p-2.5 bg-white border border-pink-200 rounded-lg text-black focus:outline-none focus:border-pink-500"
+                >
+                  <option value="all">⭐ TODOS OS FUNCIONÁRIOS</option>
+                  {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs font-bold text-pink-800 mb-1 uppercase">Tipo de Evento</label>
+                <select 
+                  required 
+                  value={eventForm.eventType} 
+                  onChange={e => setEventForm({...eventForm, eventType: e.target.value})}
+                  className="w-full p-2.5 bg-white border border-pink-200 rounded-lg text-black focus:outline-none focus:border-pink-500"
+                >
+                  <option value="FERIADO">Feriado</option>
+                  <option value="FOLGA">Folga</option>
+                  <option value="ATESTADO">Atestado</option>
+                  <option value="FALTA">Falta</option>
+                  <option value="FERIAS">Férias</option>
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs font-bold text-pink-800 mb-1 uppercase">Data</label>
+                <input 
+                  type="date" 
+                  required 
+                  value={eventForm.date} 
+                  onChange={e => setEventForm({...eventForm, date: e.target.value})} 
+                  className="w-full p-2.5 bg-white border border-pink-200 rounded-lg text-black focus:outline-none focus:border-pink-500"
+                />
+              </div>
+            </div>
+            <button type="submit" className="bg-pink-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-pink-700 transition shadow-sm w-full md:w-auto">
+              Salvar Evento na Planilha
+            </button>
+          </form>
+        </div>
+
         {/* Lista de Registros Agrupados por Data */}
         <h2 className="text-xl font-bold text-gray-800 mb-4 mt-8">Histórico de Pontos</h2>
         <div className="space-y-8">
@@ -334,67 +400,109 @@ export default function AdminDashboard() {
           {Object.entries(
             punches.reduce((acc: any, punch: any) => {
               const dataStr = new Date(punch.timestamp).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
-              if (!acc[dataStr]) acc[dataStr] = {};
-              if (!acc[dataStr][punch.employee.name]) acc[dataStr][punch.employee.name] = [];
-              acc[dataStr][punch.employee.name].push(punch);
-              return acc;
-            }, {})
-          ).map(([dataStr, employeeGroups]: any) => (
-            <div key={dataStr} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100">
-                📅 Data: {dataStr}
-              </h3>
-              
-              <div className="space-y-6">
-                {Object.entries(employeeGroups).map(([empName, empPunches]: any) => {
-                  // Ordenar do menor horário (mais antigo) para o maior (mais recente)
-                  const sortedPunches = [...empPunches].sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-
-                  return (
-                    <div key={empName} className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                      <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
-                        👤 {empName}
-                      </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                        {sortedPunches.map((p: any) => (
-                          <div key={p.id} className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center text-center">
-                            {p.photoUrl && p.photoUrl !== 'mock-url-porque-sem-token.jpg' ? (
-                              <a href={p.photoUrl} target="_blank" rel="noreferrer">
-                                <img src={p.photoUrl} alt="Foto" className="w-16 h-16 rounded-full object-cover border-2 border-blue-100 mb-2 shadow-sm" />
-                              </a>
-                            ) : (
-                              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-[10px] text-gray-400 mb-2">Sem foto</div>
-                            )}
-                            <span className="font-bold text-gray-900 text-lg">
-                              {new Date(p.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute:'2-digit' })}
-                            </span>
-                            <span className="text-[10px] uppercase font-bold text-blue-600 mt-1 mb-1 flex items-center gap-1">
-                              {p.type.replace('_', ' ')}
-                              {p.isLatePunch && <span className="bg-purple-100 text-purple-700 px-1 rounded ml-1" title="Ponto Atrasado (Solicitado pelo Gestor)">⚠️</span>}
-                            </span>
-                            
-                            {p.distanceFromStoreMeters !== null && p.latitude && p.longitude && (
-                              <a 
-                                href={`https://www.google.com/maps?q=${p.latitude},${p.longitude}`} 
-                                target="_blank" 
-                                rel="noreferrer"
-                                className={`text-[11px] font-bold mt-1 px-2 py-1 rounded hover:opacity-80 transition-opacity ${p.distanceFromStoreMeters > 100 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}
-                                title="Ver no mapa"
-                              >
-                                📍 {Math.round(p.distanceFromStoreMeters)}m
-                              </a>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+        {/* --- HISTÓRICO DE PONTOS (Agrupado por Funcionário) --- */}
+        <div className="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-black text-gray-900 tracking-tight">Histórico de Pontos</h2>
+            <p className="text-gray-500 text-sm mt-1">Visualize as batidas organizadas por funcionário.</p>
+          </div>
+          
+          <div className="flex gap-2 w-full md:w-auto">
+            <select 
+              value={filterMonth} 
+              onChange={e => setFilterMonth(parseInt(e.target.value))}
+              className="bg-white border border-gray-300 rounded-lg px-4 py-2 font-bold text-gray-700 shadow-sm focus:outline-none focus:border-blue-500"
+            >
+              {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => <option key={m} value={m}>Mês {m.toString().padStart(2, '0')}</option>)}
+            </select>
+            <input 
+              type="number" 
+              value={filterYear} 
+              onChange={e => setFilterYear(parseInt(e.target.value))}
+              className="w-24 bg-white border border-gray-300 rounded-lg px-4 py-2 font-bold text-gray-700 shadow-sm focus:outline-none focus:border-blue-500"
+            />
+          </div>
         </div>
 
+        <div className="space-y-4">
+          {Object.entries(punchesByEmployee).length === 0 ? (
+            <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center">
+              <span className="text-4xl block mb-2">📭</span>
+              <p className="text-gray-500 font-semibold">Nenhum ponto registrado neste mês.</p>
+            </div>
+          ) : (
+            Object.entries(punchesByEmployee).map(([empName, daysObj]: any) => (
+              <div key={empName} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden transition-all duration-300">
+                {/* Cabeçalho do Accordion */}
+                <button 
+                  onClick={() => toggleAccordion(empName)}
+                  className="w-full px-6 py-4 flex items-center justify-between bg-white hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg">
+                      {empName.charAt(0)}
+                    </div>
+                    <h3 className="font-bold text-lg text-gray-900">{empName}</h3>
+                  </div>
+                  <div className="flex items-center gap-4 text-gray-400">
+                    <span className="text-sm font-semibold bg-gray-100 px-3 py-1 rounded-full text-gray-600">
+                      {Object.keys(daysObj).length} dias trabalhados
+                    </span>
+                    <span className={`transform transition-transform duration-300 text-xl ${expandedEmp === empName ? 'rotate-180' : ''}`}>
+                      ▼
+                    </span>
+                  </div>
+                </button>
+
+                {/* Conteúdo do Accordion */}
+                {expandedEmp === empName && (
+                  <div className="border-t border-gray-100 bg-gray-50 p-6 space-y-6">
+                    {Object.entries(daysObj).sort((a: any, b: any) => new Date(b[0].split('/').reverse().join('-')).getTime() - new Date(a[0].split('/').reverse().join('-')).getTime()).map(([dateStr, empPunches]: any) => {
+                      const sortedPunches = [...empPunches].sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+                      return (
+                        <div key={dateStr} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                          <h4 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                            📅 {dateStr}
+                          </h4>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                            {sortedPunches.map((p: any) => (
+                              <div key={p.id} className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex flex-col items-center text-center hover:shadow-md transition-shadow">
+                                {p.photoUrl && p.photoUrl !== 'mock-url-porque-sem-token.jpg' ? (
+                                  <a href={p.photoUrl} target="_blank" rel="noreferrer">
+                                    <img src={p.photoUrl} alt="Foto" className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm mb-2" />
+                                  </a>
+                                ) : (
+                                  <div className="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center text-[9px] text-gray-500 mb-2 shadow-inner">Sem foto</div>
+                                )}
+                                <span className="font-black text-gray-900 text-lg tracking-tight">
+                                  {new Date(p.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute:'2-digit' })}
+                                </span>
+                                <span className="text-[10px] uppercase font-bold text-blue-600 mt-1 mb-1 flex items-center gap-1 justify-center">
+                                  {p.type.replace('_', ' ')}
+                                  {p.isLatePunch && <span className="bg-purple-100 text-purple-700 px-1 rounded" title="Ponto Atrasado">⚠️</span>}
+                                </span>
+                                {p.distanceFromStoreMeters !== null && p.latitude && p.longitude && (
+                                  <a 
+                                    href={`https://www.google.com/maps?q=${p.latitude},${p.longitude}`} 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                    className={`text-[10px] font-bold mt-1 px-2 py-0.5 rounded transition-opacity ${p.distanceFromStoreMeters > 100 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}
+                                  >
+                                    📍 {Math.round(p.distanceFromStoreMeters)}m
+                                  </a>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </main>
   );

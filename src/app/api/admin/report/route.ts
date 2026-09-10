@@ -13,6 +13,14 @@ export async function GET(request: Request) {
       where: employeeId === 'all' ? { active: true } : { id: employeeId },
       include: {
         schedules: true,
+        dayEvents: {
+          where: {
+            date: {
+              gte: new Date(year, month - 1, 1),
+              lt: new Date(year, month, 1)
+            }
+          }
+        },
         punches: {
           where: {
             timestamp: {
@@ -97,6 +105,18 @@ export async function GET(request: Request) {
         const currentDate = new Date(year, month - 1, day);
         const dayOfWeekStr = diasSemana[currentDate.getDay()];
         
+        // Verifica Eventos do Dia (Feriado, Atestado, Falta)
+        const dayEventObj = emp.dayEvents.find(e => new Date(e.date).getDate() === day);
+        let eventoLabel = 'Normal';
+        let eventoFontColor = 'FF000000'; // Preto
+        
+        if (dayEventObj) {
+          eventoLabel = dayEventObj.eventType.toLowerCase();
+          if (['feriado', 'atestado', 'falta'].includes(eventoLabel)) {
+             eventoFontColor = 'FFFF0000'; // Vermelho conforme template
+          }
+        }
+
         // Filtrar pontos do dia
         const dayPunches = emp.punches.filter(p => new Date(p.timestamp).getDate() === day);
         
@@ -110,7 +130,7 @@ export async function GET(request: Request) {
         const row = sheet.addRow([
           day,
           dayOfWeekStr,
-          'Normal',
+          eventoLabel,
           formatTime(ent1),
           formatTime(sai1),
           formatTime(ent2),
@@ -118,9 +138,12 @@ export async function GET(request: Request) {
           '0:00', '0:00', '0:00', '0:00', '00:00' // E1, S1, E2, S2, H. Not (mock para fórmulas depois)
         ]);
 
-        row.eachCell((cell) => {
+        row.eachCell((cell, colNumber) => {
           cell.border = borderThin;
           cell.alignment = { horizontal: 'center' };
+          if (colNumber === 3 && eventoFontColor !== 'FF000000') {
+             cell.font = { color: { argb: eventoFontColor }, bold: true };
+          }
         });
       }
 
