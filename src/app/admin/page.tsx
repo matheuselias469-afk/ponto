@@ -187,7 +187,10 @@ export default function AdminDashboard() {
             <p className="text-gray-500 mt-1">Bem-vindo, Matheus. Aqui estão os registros recentes.</p>
           </div>
           <div className="flex flex-wrap gap-3 w-full md:w-auto items-center">
-            <button onClick={handleLogout} className="flex-1 md:flex-none bg-gray-100 text-gray-900 px-5 py-2.5 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
+            <Link href="/" className="flex-1 md:flex-none text-center bg-blue-50 text-blue-700 border border-blue-200 px-5 py-2.5 rounded-xl font-bold hover:bg-blue-100 transition-colors">
+              📱 Ir para o Ponto
+            </Link>
+            <button onClick={handleLogout} className="flex-1 md:flex-none bg-gray-100 text-gray-900 px-5 py-2.5 rounded-xl font-bold hover:bg-gray-200 transition-colors">
               Sair
             </button>
           </div>
