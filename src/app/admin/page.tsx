@@ -357,6 +357,24 @@ export default function AdminDashboard() {
                   ))
                 )}
               </div>
+              
+              <div className="mt-2 pt-4 border-t border-white/10">
+                <button 
+                  onClick={async () => {
+                    const res = await fetch("/api/push/send", {
+                      method: "POST",
+                      body: JSON.stringify({ title: "Teste Decor", message: "A notificação está funcionando!" }),
+                      headers: { "Content-Type": "application/json" }
+                    });
+                    const data = await res.json();
+                    if(data.success) alert(`Notificação enviada para ${data.sent} aparelhos!`);
+                    else alert("Erro: " + data.error);
+                  }}
+                  className="w-full bg-white/10 text-white font-bold py-2 px-4 rounded-xl hover:bg-white/20 transition-all border border-white/10 shadow-sm text-sm"
+                >
+                  🔔 Testar Notificação Agora
+                </button>
+              </div>
             </div>
           </div>
         </div>
