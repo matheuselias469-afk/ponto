@@ -167,14 +167,29 @@ export default function AdminDashboard() {
     }
   };
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-900">Carregando painel...</div>;
-  }
-
   const handleLogout = () => {
     localStorage.removeItem('admin_auth');
     router.push('/admin/login');
   };
+
+  // Filtragem e Agrupamento dos Pontos (Histórico)
+  const filteredPunches = punches.filter((p: any) => {
+    const d = new Date(p.timestamp);
+    return (d.getMonth() + 1) === filterMonth && d.getFullYear() === filterYear;
+  });
+
+  const punchesByEmployee = filteredPunches.reduce((acc: any, punch: any) => {
+    const empName = punch.employee.name;
+    const dataStr = new Date(punch.timestamp).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+    if (!acc[empName]) acc[empName] = {};
+    if (!acc[empName][dataStr]) acc[empName][dataStr] = [];
+    acc[empName][dataStr].push(punch);
+    return acc;
+  }, {});
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-900">Carregando painel...</div>;
+  }
 
   return (
     <main className="min-h-screen bg-gray-50 p-4 md:p-8">
@@ -457,19 +472,6 @@ export default function AdminDashboard() {
           </form>
         </div>
 
-        {/* Lista de Registros Agrupados por Data */}
-        <h2 className="text-xl font-bold text-gray-800 mb-4 mt-8">Histórico de Pontos</h2>
-        <div className="space-y-8">
-          {punches.length === 0 && (
-            <div className="bg-white p-8 rounded-2xl text-center text-gray-500 border border-gray-100 shadow-sm">
-              Nenhum ponto registrado ainda.
-            </div>
-          )}
-          
-          {/* Lógica de Agrupamento por Data */}
-          {Object.entries(
-            punches.reduce((acc: any, punch: any) => {
-              const dataStr = new Date(punch.timestamp).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
         {/* --- HISTÓRICO DE PONTOS (Agrupado por Funcionário) --- */}
         <div className="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
