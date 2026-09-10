@@ -14,6 +14,7 @@ export default function AdminDashboard() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [pendingPunches, setPendingPunches] = useState<any[]>([]);
   const [lateForm, setLateForm] = useState({ employeeId: '', date: '', time: '', type: 'ENTRADA' });
+  const [reportForm, setReportForm] = useState({ employeeId: 'all', month: new Date().getMonth() + 1, year: new Date().getFullYear() });
   const [loading, setLoading] = useState(true);
 
   const fetchData = () => {
@@ -137,13 +138,59 @@ export default function AdminDashboard() {
             <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Painel do Gestor</h1>
             <p className="text-gray-500 mt-1">Bem-vindo, Matheus. Aqui estão os registros recentes.</p>
           </div>
-          <div className="flex flex-wrap gap-3 w-full md:w-auto">
-            <Link href="/api/admin/report" className="flex-1 md:flex-none text-center bg-green-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-sm">
-              Gerar Excel
-            </Link>
+          <div className="flex flex-wrap gap-3 w-full md:w-auto items-center">
             <button onClick={handleLogout} className="flex-1 md:flex-none bg-gray-100 text-gray-900 px-5 py-2.5 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
               Sair
             </button>
+          </div>
+        </div>
+
+        {/* --- EXPORTAÇÃO EXCEL --- */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-green-100 mb-8 flex flex-col md:flex-row gap-6 bg-gradient-to-r from-green-50 to-white">
+          <div className="flex-1">
+            <h2 className="text-xl font-bold text-green-900 mb-1">Gerar Planilha (Excel)</h2>
+            <p className="text-sm text-green-700 mb-4">Escolha o funcionário e o mês para baixar o relatório completo.</p>
+            
+            <form action="/api/admin/report" method="GET" target="_blank" className="space-y-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <label className="block text-xs font-bold text-green-800 mb-1 uppercase">Funcionário</label>
+                  <select 
+                    name="employeeId"
+                    value={reportForm.employeeId} 
+                    onChange={e => setReportForm({...reportForm, employeeId: e.target.value})}
+                    className="w-full p-2.5 bg-white border border-green-200 rounded-lg text-black focus:outline-none focus:border-green-500"
+                  >
+                    <option value="all">Todos os Funcionários</option>
+                    {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
+                  </select>
+                </div>
+                <div className="w-full md:w-32">
+                  <label className="block text-xs font-bold text-green-800 mb-1 uppercase">Mês</label>
+                  <select 
+                    name="month"
+                    value={reportForm.month} 
+                    onChange={e => setReportForm({...reportForm, month: parseInt(e.target.value)})}
+                    className="w-full p-2.5 bg-white border border-green-200 rounded-lg text-black focus:outline-none focus:border-green-500"
+                  >
+                    {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => <option key={m} value={m}>{m.toString().padStart(2, '0')}</option>)}
+                  </select>
+                </div>
+                <div className="w-full md:w-32">
+                  <label className="block text-xs font-bold text-green-800 mb-1 uppercase">Ano</label>
+                  <input 
+                    type="number"
+                    name="year"
+                    value={reportForm.year} 
+                    onChange={e => setReportForm({...reportForm, year: parseInt(e.target.value)})}
+                    className="w-full p-2.5 bg-white border border-green-200 rounded-lg text-black focus:outline-none focus:border-green-500"
+                  />
+                </div>
+              </div>
+              <button type="submit" className="bg-green-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-green-700 transition shadow-sm w-full md:w-auto">
+                ⬇️ Baixar Planilha
+              </button>
+            </form>
           </div>
         </div>
 
