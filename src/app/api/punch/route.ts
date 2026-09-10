@@ -46,7 +46,6 @@ export async function POST(request: Request) {
     }
 
     // 3. Determinar o tipo de batida (Lógica simplificada para Entrada/Saída)
-    // No mundo real, buscaríamos os pontos de hoje para saber a sequência
     const todayPunches = await prisma.punch.count({
       where: {
         employeeId,
@@ -55,11 +54,31 @@ export async function POST(request: Request) {
     });
 
     let punchType: any = 'ENTRADA';
-    if (justification) punchType = 'SAIDA_ANTECIPADA';
-    else if (todayPunches === 1) punchType = 'SAIDA_ALMOCO';
-    else if (todayPunches === 2) punchType = 'VOLTA_ALMOCO';
-    else if (todayPunches === 3) punchType = 'SAIDA';
-    else if (todayPunches >= 4) punchType = 'EXTRA';
+    let punchTimestamp = new Date();
+    let isLatePunch = false;
+    
+    const pendingPunchId = formData.get('pendingPunchId') as string | null;
+
+    if (pendingPunchId) {
+      const pending = await prisma.pendingPunch.findUnique({ where: { id: pendingPunchId } });
+      if (pending && pending.status === 'PENDING') {
+        punchType = pending.type;
+        punchTimestamp = pending.timestamp;
+        isLatePunch = true;
+        
+        // Marca a pendência como resolvida
+        await prisma.pendingPunch.update({
+          where: { id: pendingPunchId },
+          data: { status: 'RESOLVED' }
+        });
+      }
+    } else {
+      if (justification) punchType = 'SAIDA_ANTECIPADA';
+      else if (todayPunches === 1) punchType = 'SAIDA_ALMOCO';
+      else if (todayPunches === 2) punchType = 'VOLTA_ALMOCO';
+      else if (todayPunches === 3) punchType = 'SAIDA';
+      else if (todayPunches >= 4) punchType = 'EXTRA';
+    }
 
     // 4. Upload da foto
     let photoUrl = '';
@@ -76,13 +95,14 @@ export async function POST(request: Request) {
     const punch = await prisma.punch.create({
       data: {
         employeeId,
-        timestamp: new Date(),
+        timestamp: punchTimestamp,
         type: punchType,
         photoUrl,
         latitude: lat,
         longitude: lon,
         distanceFromStoreMeters: distance,
-        justification
+        justification,
+        isLatePunch
       }
     });
 

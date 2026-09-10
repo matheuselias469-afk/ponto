@@ -11,21 +11,28 @@ export default function AdminDashboard() {
   const [storeLat, setStoreLat] = useState(0);
   const [storeLon, setStoreLon] = useState(0);
   const [storeRadius, setStoreRadius] = useState(100);
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [pendingPunches, setPendingPunches] = useState<any[]>([]);
+  const [lateForm, setLateForm] = useState({ employeeId: '', date: '', time: '', type: 'ENTRADA' });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const isAuth = localStorage.getItem('admin_auth');
-    if (!isAuth) {
-      router.push('/admin/login');
-      return;
-    }
-
+  const fetchData = () => {
     // Busca os pontos
     fetch('/api/admin/punches')
       .then(res => res.json())
       .then(data => setPunches(data.punches || []));
 
-    // Busca configurações (Chave e Localização)
+    // Busca funcionários para o form
+    fetch('/api/admin/employees')
+      .then(res => res.json())
+      .then(data => setEmployees(data.employees || []));
+
+    // Busca solicitações de pontos pendentes
+    fetch('/api/admin/pending-punches')
+      .then(res => res.json())
+      .then(data => setPendingPunches(data.pending || []));
+
+    // Busca a chave atual
     fetch('/api/admin/settings')
       .then(res => res.json())
       .then(data => {
@@ -37,7 +44,37 @@ export default function AdminDashboard() {
         }
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    const isAuth = localStorage.getItem('admin_auth');
+    if (!isAuth) {
+      router.push('/admin/login');
+      return;
+    }
+    fetchData();
   }, [router]);
+
+  const handleCreateLatePunch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/admin/pending-punches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(lateForm)
+      });
+      if (res.ok) {
+        alert('Solicitação de Ponto Atrasado enviada! O funcionário deverá confirmá-la na próxima vez que bater o ponto.');
+        setLateForm({ employeeId: '', date: '', time: '', type: 'ENTRADA' });
+        fetchData();
+      } else {
+        const err = await res.json();
+        alert('Erro: ' + err.error);
+      }
+    } catch (e) {
+      alert('Erro de conexão.');
+    }
+  };
 
   const handleUpdateKey = async () => {
     try {
@@ -166,7 +203,75 @@ export default function AdminDashboard() {
               Salvar Localização
             </button>
           </div>
+        </div>
 
+        {/* --- PONTOS ATRASADOS / SOLICITAÇÃO --- */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-purple-100 mb-8 flex flex-col md:flex-row gap-6 bg-gradient-to-r from-purple-50 to-white">
+          <div className="flex-1">
+            <h2 className="text-xl font-bold text-purple-900 mb-1">Solicitar Ponto Atrasado</h2>
+            <p className="text-sm text-purple-700 mb-4">Esqueceu de bater? Selecione o funcionário e crie a pendência. Ele precisará tirar a foto para confirmar.</p>
+            
+            <form onSubmit={handleCreateLatePunch} className="space-y-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <label className="block text-xs font-bold text-purple-800 mb-1 uppercase">Funcionário</label>
+                  <select 
+                    required 
+                    value={lateForm.employeeId} 
+                    onChange={e => setLateForm({...lateForm, employeeId: e.target.value})}
+                    className="w-full p-2.5 bg-white border border-purple-200 rounded-lg text-black focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="">Selecione...</option>
+                    {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.name}</option>)}
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs font-bold text-purple-800 mb-1 uppercase">Tipo</label>
+                  <select 
+                    required 
+                    value={lateForm.type} 
+                    onChange={e => setLateForm({...lateForm, type: e.target.value})}
+                    className="w-full p-2.5 bg-white border border-purple-200 rounded-lg text-black focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="ENTRADA">Entrada</option>
+                    <option value="SAIDA_ALMOCO">Saída Almoço</option>
+                    <option value="VOLTA_ALMOCO">Volta Almoço</option>
+                    <option value="SAIDA">Saída</option>
+                  </select>
+                </div>
+                <div className="flex-1 flex gap-2">
+                  <div className="flex-1">
+                    <label className="block text-xs font-bold text-purple-800 mb-1 uppercase">Data</label>
+                    <input type="date" required value={lateForm.date} onChange={e => setLateForm({...lateForm, date: e.target.value})} className="w-full p-2.5 bg-white border border-purple-200 rounded-lg text-black focus:outline-none focus:border-purple-500"/>
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xs font-bold text-purple-800 mb-1 uppercase">Hora</label>
+                    <input type="time" required value={lateForm.time} onChange={e => setLateForm({...lateForm, time: e.target.value})} className="w-full p-2.5 bg-white border border-purple-200 rounded-lg text-black focus:outline-none focus:border-purple-500"/>
+                  </div>
+                </div>
+              </div>
+              <button type="submit" className="bg-purple-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-purple-700 transition shadow-sm w-full md:w-auto">
+                Enviar Solicitação ao Funcionário
+              </button>
+            </form>
+          </div>
+
+          {/* Listagem de pendentes */}
+          <div className="w-full md:w-1/3 border-t md:border-t-0 md:border-l border-purple-200 pt-4 md:pt-0 md:pl-6 flex flex-col">
+            <h3 className="text-sm font-bold text-purple-900 mb-3">Aguardando Confirmação ({pendingPunches.length})</h3>
+            <div className="flex-1 overflow-y-auto max-h-48 space-y-2 pr-2">
+              {pendingPunches.length === 0 ? (
+                <p className="text-xs text-purple-600 italic">Nenhuma pendência.</p>
+              ) : (
+                pendingPunches.map(p => (
+                  <div key={p.id} className="bg-white p-2.5 rounded-lg border border-purple-100 shadow-sm text-xs relative">
+                    <span className="font-bold text-gray-900 block">{p.employee.name}</span>
+                    <span className="text-purple-600 font-semibold">{p.type.replace('_', ' ')}</span> • {new Date(p.timestamp).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit' })}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Lista de Registros Agrupados por Data */}
@@ -216,7 +321,10 @@ export default function AdminDashboard() {
                             <span className="font-bold text-gray-900 text-lg">
                               {new Date(p.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute:'2-digit' })}
                             </span>
-                            <span className="text-[10px] uppercase font-bold text-blue-600 mt-1 mb-1">{p.type.replace('_', ' ')}</span>
+                            <span className="text-[10px] uppercase font-bold text-blue-600 mt-1 mb-1 flex items-center gap-1">
+                              {p.type.replace('_', ' ')}
+                              {p.isLatePunch && <span className="bg-purple-100 text-purple-700 px-1 rounded ml-1" title="Ponto Atrasado (Solicitado pelo Gestor)">⚠️</span>}
+                            </span>
                             
                             {p.distanceFromStoreMeters !== null && p.latitude && p.longitude && (
                               <a 

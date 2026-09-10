@@ -53,12 +53,37 @@ function PontoContent() {
     }
   }, [step]);
 
-  const handlePinSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (pin.length === 4) setStep(2);
-  };
-
   const [successPunch, setSuccessPunch] = useState<any>(null);
+  const [pendingPunch, setPendingPunch] = useState<any>(null);
+  const [loadingPin, setLoadingPin] = useState(false);
+
+  const handlePinSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pin.length !== 4) return;
+    
+    setLoadingPin(true);
+    try {
+      const res = await fetch('/api/employees/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employeeId, pin })
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        if (data.pendingPunches && data.pendingPunches.length > 0) {
+          setPendingPunch(data.pendingPunches[0]);
+        }
+        setStep(2);
+      } else {
+        alert("Erro: " + data.error);
+      }
+    } catch (e) {
+      alert("Erro ao verificar o PIN.");
+    } finally {
+      setLoadingPin(false);
+    }
+  };
 
   const handleBaterPonto = async () => {
     if (!location) {
@@ -97,6 +122,10 @@ function PontoContent() {
     formData.append('latitude', location.lat.toString());
     formData.append('longitude', location.lon.toString());
     formData.append('photo', blobPhoto, `ponto_${Date.now()}.jpg`);
+    
+    if (pendingPunch) {
+      formData.append('pendingPunchId', pendingPunch.id);
+    }
 
     try {
       const res = await fetch('/api/punch', {
@@ -181,6 +210,14 @@ function PontoContent() {
         </div>
 
         <div className="text-center w-full flex flex-col items-center">
+          {pendingPunch && (
+            <div className="bg-purple-600 p-4 rounded-xl mb-4 w-full max-w-sm border-2 border-purple-400 shadow-lg animate-pulse">
+              <p className="text-purple-100 text-xs uppercase font-bold tracking-widest mb-1">Solicitação Pendente</p>
+              <p className="font-bold">O Gestor solicitou confirmar:</p>
+              <p className="text-xl font-black bg-purple-800 rounded px-2 py-1 mt-1 uppercase">{pendingPunch.type.replace('_', ' ')} às {new Date(pendingPunch.timestamp).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute:'2-digit' })}</p>
+            </div>
+          )}
+
           <p className="text-gray-400 text-sm uppercase tracking-widest mb-4">Enquadre seu rosto</p>
           
           <div className="relative w-64 h-80 bg-gray-900 rounded-[120px] overflow-hidden border-4 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
@@ -194,9 +231,9 @@ function PontoContent() {
 
         <button 
           onClick={handleBaterPonto}
-          className="w-full max-w-sm bg-green-600 active:bg-green-700 text-white font-bold text-xl py-5 rounded-xl shadow-[0_4px_0_0_rgb(22,101,52)] active:shadow-none active:translate-y-1 transition-all mt-4"
+          className={`w-full max-w-sm text-white font-bold text-xl py-5 rounded-xl shadow-[0_4px_0_0_rgba(0,0,0,0.3)] active:shadow-none active:translate-y-1 transition-all mt-4 ${pendingPunch ? 'bg-purple-600 active:bg-purple-700' : 'bg-green-600 active:bg-green-700'}`}
         >
-          BATER PONTO AGORA
+          {pendingPunch ? 'CONFIRMAR PONTO ATRASADO' : 'BATER PONTO AGORA'}
         </button>
       </div>
     </main>

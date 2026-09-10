@@ -21,6 +21,7 @@ model Employee {
   schedules     WorkSchedule[]
   punches       Punch[]
   dayEvents     DayEvent[]
+  pendingPunches PendingPunch[]
 }
 
 model WorkSchedule {
@@ -80,8 +81,20 @@ model Punch {
   latitude                Float?
   longitude               Float?
   distanceFromStoreMeters Float?
+  isLatePunch             Boolean  @default(false)
 
   employee Employee @relation(fields: [employeeId], references: [id])
+}
+
+model PendingPunch {
+  id          String    @id @default(uuid())
+  employeeId  String
+  timestamp   DateTime
+  type        PunchType
+  status      String    @default("PENDING") // PENDING, RESOLVED
+  createdAt   DateTime  @default(now())
+
+  employee    Employee  @relation(fields: [employeeId], references: [id])
 }
 
 model Holiday {
