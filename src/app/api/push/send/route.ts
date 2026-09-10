@@ -12,16 +12,15 @@ export async function POST(req: Request) {
   try {
     const { title, message } = await req.json();
     
-    // Buscar todas as inscrições
     const subscriptions = await prisma.pushSubscription.findMany();
     
     if (subscriptions.length === 0) {
-      return NextResponse.json({ success: false, error: "Nenhuma inscrição encontrada." });
+      return NextResponse.json({ success: false, error: "Nenhuma inscricao encontrada." });
     }
 
     const payload = JSON.stringify({
       title: title || "Decor Ponto",
-      body: message || "Não se esqueça de bater o ponto!",
+      body: message || "Nao se esqueca de bater o ponto!",
       icon: "/decor-logo.png",
       badge: "/decor-logo.png"
     });
