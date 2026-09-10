@@ -105,9 +105,10 @@ model Holiday {
 }
 
 model Settings {
-  id          String @id @default("singleton")
-  adminPin    String @default("1234")
-  latitude    Float  @default(0.0)
-  longitude   Float  @default(0.0)
-  radiusMeters Int   @default(100)
+  id                String @id @default("singleton")
+  adminPin          String @default("1234")
+  latitude          Float  @default(0.0)
+  longitude         Float  @default(0.0)
+  radiusMeters      Int    @default(100)
+  notificationTimes String @default("[]") // JSON Array de horários ["08:00", "12:00"]
 }

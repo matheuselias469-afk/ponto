@@ -18,23 +18,24 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    
-    // Preparar objeto de atualização com apenas os campos enviados
-    const updateData: any = {};
-    if (data.inviteKey !== undefined) updateData.adminPin = data.inviteKey;
-    if (data.latitude !== undefined) updateData.latitude = parseFloat(data.latitude);
-    if (data.longitude !== undefined) updateData.longitude = parseFloat(data.longitude);
-    if (data.radiusMeters !== undefined) updateData.radiusMeters = parseInt(data.radiusMeters);
+    const { inviteKey, latitude, longitude, radiusMeters, notificationTimes } = data;
 
     const settings = await prisma.settings.upsert({
       where: { id: 'singleton' },
-      update: updateData,
+      update: {
+        adminPin: inviteKey !== undefined ? inviteKey : undefined,
+        latitude: latitude !== undefined ? parseFloat(latitude) : undefined,
+        longitude: longitude !== undefined ? parseFloat(longitude) : undefined,
+        radiusMeters: radiusMeters !== undefined ? parseInt(radiusMeters) : undefined,
+        notificationTimes: notificationTimes !== undefined ? JSON.stringify(notificationTimes) : undefined,
+      },
       create: { 
         id: 'singleton', 
-        adminPin: data.inviteKey || '14060920',
-        latitude: updateData.latitude || 0,
-        longitude: updateData.longitude || 0,
-        radiusMeters: updateData.radiusMeters || 100
+        adminPin: inviteKey || '14060920',
+        latitude: latitude ? parseFloat(latitude) : 0,
+        longitude: longitude ? parseFloat(longitude) : 0,
+        radiusMeters: radiusMeters ? parseInt(radiusMeters) : 100,
+        notificationTimes: notificationTimes ? JSON.stringify(notificationTimes) : '[]'
       }
     });
 

@@ -107,7 +107,7 @@ function PontoContent() {
       context?.drawImage(video, 0, 0, canvas.width, canvas.height);
       
       blobPhoto = await new Promise((resolve) => 
-        canvas.toBlob(resolve, 'image/jpeg', 0.8) // Qualidade 80%
+        canvas.toBlob(resolve, 'image/jpeg', 1.0) // Qualidade 100%
       );
     }
 

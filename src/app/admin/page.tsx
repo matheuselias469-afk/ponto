@@ -11,6 +11,9 @@ export default function AdminDashboard() {
   const [storeLat, setStoreLat] = useState(0);
   const [storeLon, setStoreLon] = useState(0);
   const [storeRadius, setStoreRadius] = useState(100);
+  const [notificationTimes, setNotificationTimes] = useState<string[]>([]);
+  const [newNotifTime, setNewNotifTime] = useState('');
+
   const [employees, setEmployees] = useState<any[]>([]);
   const [pendingPunches, setPendingPunches] = useState<any[]>([]);
   const [lateForm, setLateForm] = useState({ employeeId: '', date: '', time: '', type: 'ENTRADA' });
@@ -37,6 +40,10 @@ export default function AdminDashboard() {
         setStoreLat(data.settings.latitude || 0);
         setStoreLon(data.settings.longitude || 0);
         setStoreRadius(data.settings.radiusMeters || 100);
+        try {
+          const times = JSON.parse(data.settings.notificationTimes || '[]');
+          setNotificationTimes(times);
+        } catch(e) {}
       }
       setLoading(false);
     });
@@ -50,6 +57,32 @@ export default function AdminDashboard() {
     }
     fetchData();
   }, [router]);
+
+  // ... (funções de submit)
+  
+  const handleAddNotificationTime = async () => {
+    if (!newNotifTime) return;
+    if (notificationTimes.includes(newNotifTime)) return;
+    const newTimes = [...notificationTimes, newNotifTime].sort();
+    setNotificationTimes(newTimes);
+    setNewNotifTime('');
+    
+    await fetch('/api/admin/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notificationTimes: newTimes })
+    });
+  };
+
+  const handleRemoveNotificationTime = async (timeToRemove: string) => {
+    const newTimes = notificationTimes.filter(t => t !== timeToRemove);
+    setNotificationTimes(newTimes);
+    await fetch('/api/admin/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notificationTimes: newTimes })
+    });
+  };
 
   const handleCreateLatePunch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -209,14 +242,14 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Painel de Configurações Dividido em 2 Colunas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        {/* Painel de Configurações Dividido em 3 Colunas */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           
           {/* Gerenciador de Chave de Segurança */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-blue-100 flex flex-col gap-4 bg-gradient-to-r from-blue-50 to-white">
             <div className="flex-1">
-              <h2 className="text-lg font-bold text-blue-900 mb-1">Chave de Segurança (Cadastro)</h2>
-              <p className="text-sm text-blue-700 mb-3">Compartilhe para os funcionários criarem contas.</p>
+              <h2 className="text-lg font-bold text-blue-900 mb-1">Chave de Segurança</h2>
+              <p className="text-sm text-blue-700 mb-3">Compartilhe para novos cadastros.</p>
               <input 
                 type="text" 
                 value={inviteKey}
@@ -236,14 +269,14 @@ export default function AdminDashboard() {
           {/* Configuração de Localização da Loja */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-orange-100 flex flex-col gap-4 bg-gradient-to-r from-orange-50 to-white">
             <div className="flex-1">
-              <h2 className="text-lg font-bold text-orange-900 mb-1">Localização da Loja (GPS)</h2>
-              <p className="text-sm text-orange-700 mb-3">Defina onde fica a loja para o bloqueio de raio funcionar.</p>
+              <h2 className="text-lg font-bold text-orange-900 mb-1">Localização (GPS)</h2>
+              <p className="text-sm text-orange-700 mb-3">Defina onde fica a loja.</p>
               <div className="flex gap-2 mb-2">
                 <button 
                   onClick={handleGetLocation}
                   className="w-full bg-orange-100 text-orange-800 border border-orange-200 font-bold py-2 rounded-lg hover:bg-orange-200 transition text-sm flex justify-center items-center gap-2"
                 >
-                  📍 Pegar minha localização atual
+                  📍 Pegar localização atual
                 </button>
               </div>
               <div className="flex gap-2 text-sm text-gray-700 mb-2">
@@ -264,6 +297,40 @@ export default function AdminDashboard() {
             >
               Salvar Localização
             </button>
+          </div>
+
+          {/* Notificações (Horários) */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-teal-100 flex flex-col gap-4 bg-gradient-to-r from-teal-50 to-white">
+            <div className="flex-1">
+              <h2 className="text-lg font-bold text-teal-900 mb-1">Notificações</h2>
+              <p className="text-sm text-teal-700 mb-3">Lembretes para bater o ponto.</p>
+              <div className="flex gap-2 mb-4">
+                <input 
+                  type="time" 
+                  value={newNotifTime}
+                  onChange={(e) => setNewNotifTime(e.target.value)}
+                  className="flex-1 p-2 bg-white border border-teal-200 rounded-lg focus:outline-none focus:border-teal-500 text-black font-bold"
+                />
+                <button 
+                  onClick={handleAddNotificationTime}
+                  className="bg-teal-600 text-white font-bold px-4 rounded-lg hover:bg-teal-700 transition"
+                >
+                  +
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
+                {notificationTimes.length === 0 ? (
+                  <span className="text-xs text-teal-600 italic">Nenhum horário.</span>
+                ) : (
+                  notificationTimes.map(t => (
+                    <span key={t} className="bg-teal-100 text-teal-800 text-sm font-bold px-3 py-1 rounded-full flex items-center gap-2">
+                      {t}
+                      <button onClick={() => handleRemoveNotificationTime(t)} className="text-teal-500 hover:text-red-500">×</button>
+                    </span>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
