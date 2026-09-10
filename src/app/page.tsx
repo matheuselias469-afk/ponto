@@ -13,8 +13,11 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-md p-6">
-        <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">Ponto por Foto</h1>
-        <p className="text-center text-gray-500 mb-8">Selecione o seu nome para bater o ponto</p>
+        <div className="flex flex-col items-center justify-center mb-6">
+          <img src="/decor-logo.png" alt="Decor" className="w-24 h-24 object-contain rounded-xl shadow-sm mb-3" />
+          <h1 className="text-3xl font-black text-[#1E3A5F] uppercase tracking-widest">Ponto</h1>
+        </div>
+        <p className="text-center text-gray-500 mb-8 font-medium">Selecione o seu nome para bater o ponto</p>
         
         <div className="space-y-3">
           {employees.map((emp) => (
