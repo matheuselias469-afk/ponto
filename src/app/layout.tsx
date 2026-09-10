@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   title: "Ponto Decor",
   description: "Sistema de Controle de Ponto",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/decor-logo.png",
+    apple: "/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
