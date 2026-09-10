@@ -220,12 +220,15 @@ function PontoContent() {
 
           <p className="text-gray-400 text-sm uppercase tracking-widest mb-4">Enquadre seu rosto</p>
           
-          <div className="relative w-64 h-80 bg-gray-900 rounded-[120px] overflow-hidden border-4 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
+          <div className="relative w-full aspect-[9/16] max-h-[55vh] bg-black rounded-[40px] overflow-hidden border-4 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.2)]">
              <video ref={videoRef} autoPlay playsInline muted className="absolute top-0 left-0 w-full h-full object-cover transform -scale-x-100"></video>
              <canvas ref={canvasRef} className="hidden"></canvas>
              
-             {/* Efeito de Scanner de Banco */}
-             <div className="absolute inset-0 border-[6px] border-black/40 rounded-[120px] pointer-events-none z-10"></div>
+             {/* Efeito de Scanner de Banco (Overlay escuro com furo oval) */}
+             <div className="absolute inset-0 pointer-events-none z-10" style={{ background: 'radial-gradient(ellipse 65% 55% at 50% 50%, transparent 40%, rgba(0,0,0,0.7) 100%)' }}></div>
+             
+             {/* Guia Oval Tracejada */}
+             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[65%] h-[55%] border-[4px] border-dashed border-green-400 rounded-[120px] opacity-80 pointer-events-none z-20"></div>
           </div>
         </div>
 
